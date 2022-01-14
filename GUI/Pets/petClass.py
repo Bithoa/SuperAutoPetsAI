@@ -4,10 +4,14 @@
 #- make a function for each pet ability
 #- make sure to trigger other abilites that may be triggered from the pet ability(like a damage ability would trigger a hurt ability)
 
+Tier1={"ant" : [2,1],
+       "pig"}
+Tier2=
+
 class Pet:
-    def __init__(self, type, level, pipNum):
+    def __init__(self, type, level, player):
         self.type= type
-        self.pipNum= pipNum
+        #self.pipNum= pipNum
         self.level= level
         self.exp=0
         self.health=
@@ -17,6 +21,9 @@ class Pet:
         self.damage= 0
         self.item= None
         self.effect=
+
+
+
 
     def effect(self):
 
@@ -42,6 +49,7 @@ class Pet:
 
 
 
+    #account for maximum team size, and positioning
     def summon(self, index, ):
 
 
