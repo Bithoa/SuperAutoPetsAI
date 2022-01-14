@@ -18,5 +18,30 @@ class Pet:
         self.item= None
         self.effect=
 
+    def effect(self):
 
-    def pig(self, ):
+    # This should be the general input to the effect functions for every pet
+    # (the self-player object, the enemy player objec, and the draftboard)
+    #You can also assume that the function will be used at the exact right time it is supposed to
+    def pig(self, team, enemy, draftboard):
+
+        if self.level== 1:
+            draftboard.money += 1
+        elif self.level==2:
+            draftboard.money += 2
+        else:
+            draftboard.money += 3
+
+
+
+    def ant(self):
+
+
+
+    def cricket(self):
+
+
+
+    def summon(self, index, ):
+
+

@@ -33,9 +33,25 @@ class draftBoard:
         self.petLineup= [3+]
         self.frozen
         self.itemLineup=
+        self.money= 10
         self.tier= ((round-1)//2)+1
 
 
     #frozen is a list of the indices of the shop that are frozen
     def petFill(self):
+
+    def draftPet(self):
+
+    def buyItem(self):
+
+    def petOrdering(self):
+
+    def freezePet(self):
+
+    def freezeItem(self):
+
+    def reroll(self):
+
+    def sell(self):
+
 
