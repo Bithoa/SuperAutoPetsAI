@@ -13,7 +13,7 @@ def battlePhase(p1, p2):
 
 
 
-def draftPhase(rounndnumber, player):
+def draftPhase(roundnumber, player):
 
 
 
@@ -35,6 +35,7 @@ class draftBoard:
         self.itemLineup=
         self.money= 10
         self.tier= ((round-1)//2)+1
+        self.catcount = 0
 
 
     #frozen is a list of the indices of the shop that are frozen
