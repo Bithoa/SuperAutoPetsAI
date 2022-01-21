@@ -27,28 +27,47 @@ Summons = {"Zombie Cricket" : [0,0], "Bus" : [0,0], "Zombie Fly" : [0,0], "Chick
 Masterlist = {"Ant" : [2,1], "Beaver" : [2,2], "Cricket" : [1,2], "Duck" : [1,2], "Fish" : [2,3], "Horse" : [2,1], "Mosquito" : [2,2], "Otter" : [1,2], "Pig" : [3,1], "Sloth" : [1,1], "Crab" : [3,3], "Dodo" : [2,3], "Elephant" : [3,5], "Flamingo" : [3,1], "Hedgehog" : [3,2], "Peacock" : [1,5], "Shrimp" : [2,3], "Spider" : [2,2], "Swan" : [3,3], "Dog" : [2,2], "Badger" : [5,4], "Blowfish" : [3,5], "Camel" : [2,5], "Giraffe" : [2,5], "Kangaroo" : [1,2], "Ox" : [1,4], "Rabbit" : [3,2], "Sheep" : [2,2], "Snail" : [2,2], "Turtle" : [1,2], "Bison" : [6,6], "Deer" : [1,1], "Dolphin" : [4,6], "Hippo" : [4,7], "Penguin" : [1,2], "Rooster" : [5,3], "Skunk" : [3,6], "Squirrel" : [2,2], "Worm" : [2,2], "Monkey" : [1,2], "Cow" : [4,6], "Crocodile" : [8,4], "Rhino" : [5,8], "Scorpion" : [1,1], "Seal" : [3,8], "Shark" : [4,4], "Turkey" : [3,4], "Cat" : [4,5], "Boar" : [8,6], "Dragon" : [6,8], "Fly" : [5,5], "Gorilla" : [6,9], "Leopard" : [10,4], "Mammoth" : [3,10], "Snake" : [6,6]
          }
 
+MasterEffects= {"Ant" : "Faint", "Beaver" : "Sell", "Cricket" : "Faint", "Duck" : "Sell", "Fish" : "Level-Up", "Horse" : "Pet_Summ", "Mosquito" : "Battle_Start", "Otter" : "Sell", "Pig" : "Sell", "Sloth" : "Darling", "Crab" : "Buy", "Dodo" : "Battle_Start", "Elephant" : "Pre-Attack", "Flamingo" : "Faint", "Hedgehog" : "Faint", "Peacock" : "Hurt", "Shrimp" : "Sell_Friend", "Spider" : "Faint", "Swan" : "Draft_Start", "Dog" : "Pet_Summ", "Badger" : "Faint", "Blowfish" : "Hurt", "Camel" : "Hurt", "Giraffe" : "Draft_End", "Kangaroo" : "Ahead_Attacks", "Ox" : "Ahead_Faint", "Rabbit" : "Friend_Eat", "Sheep" : "Faint", "Snail" : "Buy", "Turtle" : "Faint", "Bison" : "Ahead_Attacks", "Deer" : "Faint", "Dolphin" : "Battle_Start", "Hippo" : "Knock_Out", "Penguin" : "Draft_End", "Rooster" : "Faint", "Skunk" : "Battle_Start", "Squirrel" : "Draft_Start", "Worm" : "Eat", "Monkey" : "Draft_End", "Cow" : "Buy", "Crocodile" : "Battle_Start", "Rhino" : "Knock_Out", "Scorpion" : "Summon", "Seal" : "Eat", "Shark" : "Friend_Faint", "Turkey" : "Pet_Summ", "Cat" : "Friend_Eat", "Boar" : "Pre-Attack", "Dragon" : "Buy_Friend", "Fly" : "Friend_Faint", "Gorilla" : "Hurt", "Leopard" : "Battle_Start", "Mammoth" : "Faint", "Snake" : "Ahead_Attacks"
+         }
+#Effects: Faint, Sell, Level-Up, Pet_Summ, Hurt, Battle_Start, Pre-Attack, Darling, Ahead_Attacks, Summon, Friend_Faint, Sell_Friend, Draft_Start, Buy_Friend(Dragon), Draft_End, Eat, Friend_Eat, Friend_Faint, Ahead_Faint, Knock_Out
+
 class Pet:
     def __init__(self, type, level, player):
-        self.type= type
+        self.type = type
         #self.pipNum= pipNum
-        self.level= level
-        self.exp=0
-        self.health=
-        self.temp_health=
-        self.attack=
-        self.temp_attack=
-        self.damage= 0
-        self.item= None
-        self.effect=
+        self.level = level
+        self.exp = 0
+        self.health= Masterlist[type][1] + player.cans
+        self.temp_health = 0
+        self.attack = Masterlist[type][0] + player.cans*2
+        self.temp_attack = 0
+        self.damage = 0
+        if type == "Scorpion":
+            self.item = "Peanut"
+        else:
+            self.item = None
+        self.effect_type = MasterEffects[type]
 
 
 
 
-    def effect(self):
+   # def effect(self):
 
     # This should be the general input to the effect functions for every pet
     # (the self-player object, the enemy player objec, and the draftboard)
     #You can also assume that the function will be used at the exact right time it is supposed to
+
+    def damage(self, dmg):
+        self.temp_health= self.temp_health-dmg
+
+        if self.temp_health<0:
+            self.health= self.health + self.temp_health
+            self.temp_health=0
+
+
+
+
+
 
 
 # TIER 1s
@@ -61,8 +80,8 @@ class Pet:
 
     def beaver(self, team, enemy, draftboard):
         targets = team.random(2)
-        target[1].health += self.level
-        target[2].health += self.level
+        targets[1].health += self.level
+        targets[2].health += self.level
 
     def cricket(self, team, enemy, draftboard):
         # however we implement summon
@@ -74,8 +93,8 @@ class Pet:
 
     def fish(self, team, enemy, draftboard):
         for pet in team:
-            pet.attack += level
-            pet.health += level
+            pet.attack += self.level
+            pet.health += self.level
 
     def horse(self, team, enemy, draftboard, target):
         # takes in a target
@@ -231,7 +250,7 @@ class Pet:
     def skunk(self, team, enemy, draftboard):
         highest_health = 0
         target = None
-        for pet in enemy.lineup()
+        for pet in enemy.lineup():
             if pet.health + pet.temp_health > highest_health:
                 highest_health = pet.health + pet.temp_health
                 target = pet
@@ -323,6 +342,6 @@ class Pet:
 
     #account for maximum team size, and positioning
     # I think this may do better under team
-    def summon(self, index, team):
+    #def summon(self, index, team):
 
 
