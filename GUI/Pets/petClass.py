@@ -41,7 +41,7 @@ class Pet:
         self.temp_health = 0
         self.attack = Masterlist[type][0] + player.cans*2
         self.temp_attack = 0
-        self.damage = 0
+        #self.damage = 0
         if type == "Scorpion":
             self.item = "Peanut"
         else:
@@ -57,7 +57,7 @@ class Pet:
     # (the self-player object, the enemy player objec, and the draftboard)
     #You can also assume that the function will be used at the exact right time it is supposed to
 
-    def damage(self, dmg):
+    def take_damage(self, dmg):
         self.temp_health= self.temp_health-dmg
 
         if self.temp_health<0:

@@ -3,7 +3,7 @@
 
 class player:
 
-    def __init__(self, name, team):
+    def __init__(self, name, team, robot):
         self.name= name
         self.team= team
         self.petNum=0
@@ -23,5 +23,9 @@ class player:
 
         self.frozen_items=set()
 
-        #bool of wether won or lost last battle
-        self.last_battle= None
+        #-1 is lost last battle, 0 for draw, 1 if won
+        self.last_battle= 0
+
+        #whether or not it is a bot
+        self.bot=robot
+        self.roboCache=[]

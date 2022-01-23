@@ -4,6 +4,7 @@ import random
 
 import GUI.Pets.petClass as PETS
 import GUI.Game.player as PLAYER
+import GUI.Game.AI as AI
 
 
 #TODO
@@ -24,36 +25,68 @@ def battlePhase(p1, p2):
 
 
     #battle cycle continues until one team runs out of pets
-    while petnum1 != 0 and petnum2 != 0:
+    while petnum1 > 0 and petnum2 > 0:
 
         #finds the foremost pet in each party
-        team1First= None
+        team1First= 0
         for x in team1:
             if x is not None:
-                team1First=x
+                break
+            else:
+                team1First= team1First + 1
 
-        team2First = None
+        team2First = 0
         for y in team2:
             if y is not None:
-                team2First = y
+                break
+            else:
+                team2First = team2First + 1
 
-
+        #print(type(team1))
+        #print(type(team2))
+        #print(type(team1First))
+        #print(type(team2First))
         #they attack eachother simultaneously
-        team1First.damage(team2First.attack + team2First.temp_attack)
-        team2First.damage(team1First.attack + team1First.temp_attack)
+        team1[team1First].take_damage(team2[team2First].attack + team2[team2First].temp_attack)
+        team2[team2First].take_damage(team1[team1First].attack + team1[team1First].temp_attack)
 
-        cleared=clearCarcasses(p1,p2)
+
+        #renders the battle results
+        teamLine1 = ""
+        for x in team1:
+            if x is not None:
+                teamLine1 = teamLine1 + "| LVL." + str(x.level) + "." + str(x.exp) + " " + x.type + "(" + str(
+                    x.attack + x.temp_attack) + "/" + str(x.health + x.temp_health) + ") "
+            else:
+                teamLine1 = teamLine1 + "|        "
+
+        teamLine2 = ""
+        for y in team2:
+            if y is not None:
+                teamLine2 = teamLine2 + "| LVL." + str(y.level) + "." + str(y.exp) + " " + y.type + "(" + str(
+                    y.attack + y.temp_attack) + "/" + str(y.health + y.temp_health) + ") "
+            else:
+                teamLine2 = teamLine2 + "|        "
+
+        print(teamLine1 + "  VS.  "+ teamLine2)
+
+
+        cleared=clearCarcasses(team1,team2)
+        print(str(cleared[0])+"|"+str(cleared[1]))
         petnum1= petnum1 - cleared[0]
         petnum2= petnum2 - cleared[1]
 
     #clearing off the temp values for both teams
     for z in p1:
-        z.temp_attack=0
-        z.temp_health=0
+        if z is not None:
+            z.temp_attack = 0
+            z.temp_health = 0
 
     for q in p2:
-        q.temp_attack=0
-        q.temp_health=0
+        if q is not None:
+            q.temp_attack = 0
+            q.temp_health = 0
+
 
     if petnum2 == 0 and petnum1 == 0:
         return ["draw", "draw"]
@@ -69,25 +102,28 @@ def battlePhase(p1, p2):
 def clearCarcasses(t1, t2):
     cleared= [0,0]
     for x in range(len(t1)):
-        if t1[x] is not None and t1[x].health <= 0:
+
+
+        if (t1[x] is not None) and (t1[x].health <= 0):
+
             #Put Faint here
             t1[x]= None
             cleared[0]= cleared[0]+1
 
-
-    for x in range(len(t2)):
-        if t2[x] is not None and t2[x].health <= 0:
+    for y in range(len(t2)):
+        if t2[y] is not None and t2[y].health <= 0:
             #Put Faint here
-            t2[x]= None
+            t2[y]= None
             cleared[1] = cleared[1] + 1
 
     return cleared
 
 def clearPlayerCarcassess(players):
 
-    for x in range(len(players)):
-        if players[x].lives<= 0:
-            players.pop(x)
+
+    for x in players:
+        if x.lives <= 0:
+            players.remove(x)
 
 
 
@@ -99,7 +135,7 @@ def draftPhasePlayer(roundnumber, player):
     print("Why hello there " + player.name)
 
     while finished is False:
-
+        print("")
         board.render()
 
         choice= input("What would you like to do? (draft/sell/freeze/thaw/merge/reroll/nothing)")
@@ -140,71 +176,149 @@ def draftPhasePlayer(roundnumber, player):
 
         elif choice == "nothing":
             finishChoice = input("Would you like to finish you turn? (y/n)")
-            if finishChoice == "Y":
+            if finishChoice == "y":
                 finished = True
+                continue
 
         else:
             print("I am sorry but this is not a recognized command you incompetent. Try again.")
             continue
 
         finishChoice= input("Would you like to finish you turn? (y/n)")
-        if finishChoice == "Y":
+        if finishChoice == "y":
             finished = True
 
 
 
-def gameCycle(playerNum, botNum):
+def gameCycle(playerNum, botNum, actor, logger):
     players=[]
+    bots=[]
 
     for pnum in range(playerNum):
-        players.append(PLAYER.player("team"+str(pnum), [None] * 5))
+        players.append(PLAYER.player("team"+str(pnum), [None] * 5, False))
 
+    for bNum in range(botNum):
+        bots.append(PLAYER.player("RoboJenkins" + str(bNum), [None] * 5, True))
+
+    pool= bots+players
     roundnumber=0
 
-    while len(players) != 0:
+    while len(pool) > 1:
         roundnumber= roundnumber + 1
+        print("")
         print("Round :" + str(roundnumber))
 
         #drafting phase
-        for drafter in players:
-            draftPhasePlayer(roundnumber, drafter)
+
+        for drafter in pool:
+            if drafter.bot:
+                drafter.roboCache=AI.draftPhaseBot(roundnumber, drafter, actor)
+            else:
+                draftPhasePlayer(roundnumber, drafter)
+
+
+
+
 
         #battle phase
-        for i in range(len(players)//2):
-            results= battlePhase(players[2*i].team, players[2*i + 1].team)
-            if results[0] == "win":
-                players[2 * i].wins= players[2 * i].wins + 1
-                players[2 * i].last_battle= True
+        random.shuffle(pool)
+        print("Pool Size: "+str(len(pool)) )
+        for i in range(len(pool)//2):
 
-                players[2 * i + 1].lives= players[2*i + 1].lives - (roundnumber//3 +1)
-                players[2 * i + 1].last_battle= False
+            results= battlePhase(pool[2*i].team, pool[2*i + 1].team)
+
+
+
+            if results[0] == "win":
+                pool[2 * i].wins= pool[2 * i].wins + 1
+                pool[2 * i].last_battle= 1
+
+                pool[2 * i + 1].lives= pool[2*i + 1].lives - (roundnumber//3 +1)
+                pool[2 * i + 1].last_battle= -1
 
             elif results[0] == "lose":
-                players[2 * i+1].wins = players[2 * i+1].wins + 1
-                players[2 * i+1].last_battle = True
+                pool[2 * i+1].wins = pool[2 * i+1].wins + 1
+                pool[2 * i+1].last_battle = 1
 
-                players[2 * i].lives = players[2 * i].lives - (roundnumber // 3 + 1)
-                players[2 * i].last_battle = False
+                pool[2 * i].lives = pool[2 * i].lives - (roundnumber // 3 + 1)
+                pool[2 * i].last_battle = -1
 
             else:
-                players[2 * i + 1].last_battle = True
-                players[2 * i].last_battle = True
-
-        clearPlayerCarcassess(players)
+                pool[2 * i + 1].last_battle = 0
+                pool[2 * i].last_battle = 0
 
 
 
+            #when both bots do their caching, learning and memorizing
+            if pool[2*i].bot:
+
+                #determine reward values for last draft
+                if results[0] == "win":
+                    reward_add= 5
+                elif results[0]== "lose":
+                    reward_add = max(-2*((roundnumber+4)//3), -5)
+                else:
+                    reward_add= -1
+
+                donzo=0
+                if pool[2 * i].lives <=0:
+                    donzo=1
+
+
+                for entry in pool[2 * i].roboCache:
+                    entry[3] += reward_add
+                    entry[4] += donzo
+                    #caches information about its previous moves
+                    actor.cache(entry[0], entry[1], entry[2], entry[3], entry[4])
+                    #performs learning operations
+                    q, loss = actor.learn()
+                    #increment logger
+                    logger.log_step(entry[3], loss, q)
+
+
+            if pool[2*i+1].bot:
+
+                #determine reward values for last draft
+                if results[1] == "win":
+                    reward_add= 5
+                elif results[1]== "lose":
+                    reward_add = max(-2*((roundnumber+4)//3), -5)
+                else:
+                    reward_add= -1
+
+                donzo=0
+                if pool[2 * i+1].lives <=0:
+                    donzo=1
+
+
+                for entry in pool[2 * i+1].roboCache:
+                    entry[3] += reward_add
+                    entry[4] += donzo
+                    #caching
+                    actor.cache(entry[0], entry[1], entry[2], entry[3], entry[4])
+                    # performs learning operations
+                    q, loss = actor.learn()
+                    # increment logger
+                    logger.log_step(entry[3], loss, q)
+
+        clearPlayerCarcassess(pool)
+
+    logger.log_episode()
+    return pool[0]
 
 
 
 
 
+
+
+#state_dim= (100, ())
 class draftBoard:
 
     def __init__(self, round, player):
         self.round= round
         self.player=player
-        self.petLineup= [None] * min(3+round//5, 5)
+        self.petLineup= [None] * 5
         self.frozen_pets= player.frozen_pets
         self.frozen_items= player.frozen_items
         self.itemLineup= [None] * 3
@@ -225,8 +339,12 @@ class draftBoard:
                 teamLine= teamLine + "|        "
         lineup= ""
         for y in self.petLineup:
-            lineup = lineup + "| " + y.type + "(" + str(y.attack + y.temp_attack) + "/" + str(y.health + y.temp_health) + ") "
+            if y is not None:
+                lineup = lineup + "| " + y.type + "(" + str(y.attack + y.temp_attack) + "/" + str(y.health + y.temp_health) + ") "
+            else:
+                lineup= lineup + "|        "
 
+        print("Money: "+ str(self.money)+ "    Round: "+ str(self.round) + "    Wins: " + str(self.player.wins)+ "    Lives: "+ str(self.player.lives))
         print(teamLine + "|")
         print(lineup + "|")
 
@@ -237,26 +355,27 @@ class draftBoard:
             self.petLineup[index]=ice
             index= index + 1
 
-        while index < len(self.petLineup):
+        while index < min(3+(self.round//5), 5):
             self.petLineup[index]= self.genPet()
             index=index + 1
 
 
     def genPet(self):
 
-        pool=PETS.Tier1.keys()
+        pool=list(PETS.Tier1.keys())
+
         for x in range(self.tier):
 
             if x + 1 == 2:
-                pool = pool + PETS.Tier2.keys()
+                pool = pool + list(PETS.Tier2.keys())
             elif x + 1 == 3:
-                pool = pool + PETS.Tier3.keys()
+                pool = pool + list(PETS.Tier3.keys())
             elif x + 1 == 4:
-                pool = pool + PETS.Tier4.keys()
+                pool = pool + list(PETS.Tier4.keys())
             elif x + 1 == 5:
-                pool = pool + PETS.Tier5.keys()
+                pool = pool + list(PETS.Tier5.keys())
             elif x + 1 == 6:
-                pool = pool + PETS.Tier6.keys()
+                pool = pool + list(PETS.Tier6.keys())
 
         pool= list(pool)
         return PETS.Pet(pool[random.randint(0, len(pool)-1)], 1, self.player)
@@ -275,7 +394,9 @@ class draftBoard:
 
             self.player.team[team_index].exp = drafted.exp + 1 + goal.exp
             self.petLineup[lineup_index] = None
-            self.player.team[team_index].level = 1 + (self.player.team[team_index].exp + 1 // 2)
+            self.player.team[team_index].level = 1 + (self.player.team[team_index].exp + 1 // 3)
+            self.player.team[team_index].health = self.player.team[team_index].health + 1
+            self.player.team[team_index].attack= self.player.team[team_index].attack + 1
 
 
 
@@ -289,7 +410,9 @@ class draftBoard:
 
         self.player.team[index2].exp= pet2.exp + 1 + pet1.exp
         self.player.team[index1]= None
-        self.player.team[index2].level= 1 + (self.player.team[index2].exp- 1 // 2)
+        self.player.team[index2].level= 1 + (self.player.team[index2].exp+ 1 // 3)
+        self.player.team[index2].health= self.player.team[index2] + 1
+        self.player.team[index2].attack= self.player.team[index2].attack + 1
 
 
 
@@ -315,7 +438,7 @@ class draftBoard:
         self.player.frozen_pets.add(self.petLineup[index])
 
     def thawPet(self, index):
-        self.player.frozen_pets.remove(self.petLineup[index])
+        self.player.frozen_pets.discard(self.petLineup[index])
 
 
     #def freezeItem(self):
