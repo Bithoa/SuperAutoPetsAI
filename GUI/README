@@ -1,5 +1,10 @@
 Contributors: Ishaan Thota, Blake Mader, Adrienne Hoover, and Arya Karamchandani
 
 How to run:
-    The program can be run by simply running the main program, and choosing how many bots and player you would like to
-    play with. The model is bet seen when it is
+    The program can be run by simply running the main program, and following the prompts given. If you want to run from
+    a pre-existing model from a previous run, update the PATH variable in main.py to the address of the model of your
+    choice.
+
+Logging:
+    The stats of runs are also included here, inside the checkpoint folder. Each folder is named after the time it took
+    and contains both the intermittantly saved models in .chkpt files and graphs for the runs progression.

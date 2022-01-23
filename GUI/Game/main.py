@@ -20,13 +20,16 @@ from pathlib import Path
 import random, datetime, os, copy
 
 
+PATH=""
 
 
 print("Hello, and welcome to our game!")
 print("All of the commands should be zero indexed, with the first slot being the leftmost on the console")
+saved= input("Would you like to run bots on a saved model?(y/n)")
 
-#bot_num= int(input("How mnay bots would you like to play with?"))
-#player_num= int(input("How mnay bots would you like to play with?"))
+bot_num= int(input("How many bots would you like to play with?"))
+player_num= int(input("How many players would you like to play with?"))
+ep_num=int(input("How many episodes would you like to do?"))
 
 use_cuda = torch.cuda.is_available()
 print(f"Using CUDA: {use_cuda}")
@@ -36,15 +39,21 @@ save_dir = Path("checkpoints") / datetime.datetime.now().strftime("%Y-%m-%dT%H-%
 save_dir.mkdir(parents=True)
 
 RoboJenkins = AI.agent(state_dim=(None, 4, 16), action_dim=67, save_dir=save_dir)
+if saved == "y":
 
-logger = AI.MetricLogger(save_dir)
+    RoboJenkins.net.online.load_state_dict(torch.load(PATH))
+    RoboJenkins.net.online.eval()
+    RoboJenkins.net.target.load_state_dict(torch.load(PATH))
+    RoboJenkins.net.target.eval()
 
-for x in range(20):
-    winner=GAME.gameCycle(0, 4, RoboJenkins, logger)
+PaulBunyan = AI.MetricLogger(save_dir)
+
+for x in range(ep_num):
+    winner=GAME.gameCycle(player_num, bot_num, RoboJenkins, PaulBunyan)
 
     print("The winner waaaasssssss ....... "+ winner.name+"!!!!!")
 
-    logger.record(episode=x, epsilon=RoboJenkins.exploration_rate, step=RoboJenkins.curr_step)
+    PaulBunyan.record(episode=x, epsilon=RoboJenkins.exploration_rate, step=RoboJenkins.curr_step)
 
 print("All done!")
 
